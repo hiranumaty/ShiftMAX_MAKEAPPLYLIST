@@ -87,10 +87,20 @@ class MakeApplyList(tk.Frame):
         self.sub_win.destroy()
     def getDetailData(self,driver,wait,link):
         '''詳細を取得し元のページに戻る'''
-        link.click()
-        time.sleep(3)
+        driver.find_element_by_id(link).click()
+        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiView_itm14")))
         #ここで要素内容を切り出して、リストを作成しそれを返却する
+        U_ID = driver.find_element_by_id('lblNo').text
+        U_NAME = driver.find_element_by_id('lblName').text
+        U_NAME = ''.join(U_NAME.split())[:-1]
+        #日付(開始と終了の取得をどのように行うか)
+        D_title = driver.find_element_by_id('lblTitle').text
+        D_Reason = driver.find_element_by_id('listShinseiView_itm14').text
+        Detail_Dict ={'ID':U_ID,'NAME':U_NAME,'Title':D_title,'Reason':D_Reason}
+        '''申請一覧のページに戻る'''
         driver.back()
+        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
+        return Detail_Dict
     def __Driver(self,event):
         if self.St_ID.get()!='' and self.St_PASS.get() != '':
             #seleniumの設定
@@ -106,7 +116,7 @@ class MakeApplyList(tk.Frame):
             PASS.send_keys(self.St_PASS.get())
             BTN_LOGIN = driver.find_element_by_id('btnLogin')
             BTN_LOGIN.click()
-            #操作
+            #メイン画面から申請一覧へ移行する
             wait.until(expected_conditions.element_to_be_clickable((By.ID, "btnShinsei")))
             BTN_Shinsei = driver.find_element_by_id('btnShinsei')
             BTN_Shinsei.click()
@@ -114,13 +124,18 @@ class MakeApplyList(tk.Frame):
             BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
             BTN_ITIRAN.click()
 
-            #一覧から詳細へのリンクを取得する
+            #一覧から申請一覧を抜き出し、IDのリストを抽出する
             wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-            table_list= driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
-            #とりあえず先頭データのリンクをクリックして情報を取得する
-            self.getDetailData(driver,wait,table_list[0])
-
-
+            table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
+            links_list = [iterater.get_attribute('id') for iterater in table_list]
+            #ここで辞書を作成する
+            Detail_dictList = []
+            #とりあえず先頭2件のデータのリンクをクリックして情報を取得する(今後複数データを取得することになる)
+            for iterate in range(0,2):
+                '''申請一覧ページであるかを待つ必要がある'''
+                print(links_list[iterate])
+                Detail_dictList.append(self.getDetailData(driver,wait,links_list[iterate]))
+            print(Detail_dictList)
         else:
             messagebox.showwarning("警告","IDとパスワードを入力してください")
         return "break"
