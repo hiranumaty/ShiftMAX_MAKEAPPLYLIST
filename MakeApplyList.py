@@ -1,7 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import time
-import re
 from tkcalendar import Calendar, DateEntry
 from Modules import Driver
 class MakeApplyList(tk.Frame):

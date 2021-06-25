@@ -1,14 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-import asyncio
 import time
 from tkcalendar import Calendar, DateEntry
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.common.by import By
-from tkinter import messagebox
+from Modules import Driver
 class MakeApplyList(tk.Frame):
     '''
     このwindowを用いて作成する
@@ -53,8 +47,7 @@ class MakeApplyList(tk.Frame):
         FINALDATE.bind('<Button-1>',self.__MORDALFINALDATE)
         FINALDATE.place(x=230,y=150)
         #ボタン
-        BTN_MakeApplyList = tk.Button(master,text="申請一覧抽出",width=40,relief="raised")
-        BTN_MakeApplyList.bind('<Button-1>',self.__Driver)
+        BTN_MakeApplyList = tk.Button(master,text="申請一覧抽出",width=40,relief="raised",command= lambda:Driver.ConnectDriver(self))
         BTN_MakeApplyList.place(x=50,y=220)
     #モーダルの作成
     def __MORDALBEGINDATE(self,event):
@@ -85,62 +78,6 @@ class MakeApplyList(tk.Frame):
             CloseBTN.place(x=100,y=220)
     def destroyMORDAL(self,event):
         self.sub_win.destroy()
-    def getDetailData(self,driver,wait,link):
-        '''詳細を取得し元のページに戻る'''
-        driver.find_element_by_id(link).click()
-        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiView_itm14")))
-        #ここで要素内容を切り出して、リストを作成しそれを返却する
-        U_ID = driver.find_element_by_id('lblNo').text
-        U_NAME = driver.find_element_by_id('lblName').text
-        U_NAME = ''.join(U_NAME.split())[:-1]
-        #日付(開始と終了の取得をどのように行うか)        
-        D_title = driver.find_element_by_id('lblTitle').text
-        D_Reason = driver.find_element_by_id('listShinseiView_itm14').text
-        Detail_Dict ={'ID':U_ID,'NAME':U_NAME,'Title':D_title,'Reason':D_Reason}
-        '''申請一覧のページに戻る'''
-        driver.back()
-        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-        return Detail_Dict
-    def __Driver(self,event):
-        if self.St_ID.get()!='' and self.St_PASS.get() != '':
-            #seleniumの設定
-            option = Options()
-            option.add_experimental_option('excludeSwitches', ['enable-logging'])
-            driver = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe",options=option)
-            driver.get(self.St_URL)
-            wait = WebDriverWait(driver,10)
-            #ログイン処理
-            ID = driver.find_element_by_id('txtLoginId')
-            ID.send_keys(self.St_ID.get())
-            PASS = driver.find_element_by_id('txtPassword')
-            PASS.send_keys(self.St_PASS.get())
-            BTN_LOGIN = driver.find_element_by_id('btnLogin')
-            BTN_LOGIN.click()
-            #メイン画面から申請一覧へ移行する
-            wait.until(expected_conditions.element_to_be_clickable((By.ID, "btnShinsei")))
-            BTN_Shinsei = driver.find_element_by_id('btnShinsei')
-            BTN_Shinsei.click()
-            wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList_ctl00_linkShinsei")))
-            BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
-            BTN_ITIRAN.click()
-
-            #一覧から申請一覧を抜き出し、IDのリストを抽出する
-            wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-            table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
-            links_list = [iterater.get_attribute('id') for iterater in table_list]
-            #ここで辞書を作成する
-            Detail_dictList = []
-            #とりあえず先頭2件のデータのリンクをクリックして情報を取得する(今後複数データを取得することになる)
-            for iterate in range(0,2):
-                '''申請一覧ページであるかを待つ必要がある'''
-                print(links_list[iterate])
-                Detail_dictList.append(self.getDetailData(driver,wait,links_list[iterate]))
-            print(Detail_dictList)
-        else:
-            messagebox.showwarning("警告","IDとパスワードを入力してください")
-        return "break"
-            #ここで要素を取得する
-
 
 def main():
     win = tk.Tk()
