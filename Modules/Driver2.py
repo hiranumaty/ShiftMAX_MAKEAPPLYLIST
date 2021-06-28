@@ -8,31 +8,32 @@ from tkinter import messagebox
 def ConnectDriver(parent):
     '''これはChromeDriverを用いた動作を行う'''
     def getDetailData(driver,wait,link):
-        '''詳細情報を辞書の形で取得しreturn'''
-        #要素を取得して、辞書にして返す
+        '''詳細情報を辞書の形で取得しreturn(ここをマルチスレッドで実装したい)'''
         driver.find_element_by_id(link).click()
-        wait.until(expected_conditions.element_to_be_clickable((By.ID, "lblTitle")))
+        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiView_itm14")))
+        #ここで要素内容を切り出して、リストを作成しそれを返却する
         U_ID = driver.find_element_by_id('lblNo').text
         U_NAME = driver.find_element_by_id('lblName').text
         U_NAME = ''.join(U_NAME.split())[:-1]
         D_title = driver.find_element_by_id('lblTitle').text
-        #titleを元に取得個所を変更する
         D_StartDate = ''
         D_ENDDate = ''
         D_Reason = ''
-        if D_title == "休暇申請":
+        #以下の部分をtitleを元に取得個所を変更する
+        if D_title == "打刻修正申請":
+            StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
+            D_StartDate = D_StartDate.join(StartDate_list)
+            D_Reason = driver.find_element_by_id('listShinseiView_itm14').text
+        elif D_title == "休暇申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
             ENDDate_list = [driver.find_element_by_id('listShinseiView_itm9').text,driver.find_element_by_id('listShinseiView_itm10').text,driver.find_element_by_id('listShinseiView_itm11').text,driver.find_element_by_id('listShinseiView_itm12').text,driver.find_element_by_id('listShinseiView_itm13').text]
             D_ENDDate = D_ENDDate.join(ENDDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm17').text
-        elif D_title == "シフト勤務申請":
-            StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
-            D_StartDate = D_StartDate.join(StartDate_list)
-            D_Reason = driver.find_element_by_id('listShinseiView_itm10').text
+
         Detail_Dict ={'ID':U_ID,'NAME':U_NAME,'StartDate':D_StartDate,'EndDate':D_ENDDate,'Title':D_title,'Reason':D_Reason}
         '''申請一覧のページに戻る'''
-        driver.find_element_by_id('btnBack').click()
+        driver.back()
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
         return Detail_Dict
     '''以下がドライバーの基本操作'''
@@ -61,13 +62,11 @@ def ConnectDriver(parent):
         #一覧から申請一覧を抜き出し、IDのリストを抽出する
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
         table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
-        #現在一覧の1ページ目しか見れていない
-        links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
+        links_list = [iterater.get_attribute('id') for iterater in table_list]
         #ここで辞書を作成する
         Detail_dictList = []
-        #for iterate in range(0,len(links_list)):
-        #とりあえず先頭3件のデータのリンクをクリックして情報を取得する
-        for iterate in range(0,3):
+        #とりあえず先頭2件のデータのリンクをクリックして情報を取得する(今後複数データを取得することになる)
+        for iterate in range(0,4):
             '''申請一覧ページであるかを待つ必要がある'''
             Detail_dictList.append(getDetailData(driver,wait,links_list[iterate]))
         print(Detail_dictList)
