@@ -38,6 +38,7 @@ def ConnectDriver(parent):
     '''以下がドライバーの基本操作'''
     if parent.St_ID.get()!='' and parent.St_PASS.get() != '':
         #seleniumの設定
+        #parent.APPLYNAMEAREA.get()
         option = Options()
         option.add_experimental_option('excludeSwitches', ['enable-logging'])
         driver = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe",options=option)
@@ -50,6 +51,7 @@ def ConnectDriver(parent):
         PASS.send_keys(parent.St_PASS.get())
         BTN_LOGIN = driver.find_element_by_id('btnLogin')
         BTN_LOGIN.click()
+        
         #メイン画面から申請一覧へ移行する
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "btnShinsei")))
         BTN_Shinsei = driver.find_element_by_id('btnShinsei')
@@ -58,17 +60,24 @@ def ConnectDriver(parent):
         BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
         BTN_ITIRAN.click()
 
-        #一覧から申請一覧を抜き出し、IDのリストを抽出する
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
         table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
         #現在一覧の1ページ目しか見れていない
-        links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
+        #ここで、parent.APPLYNAMEAREA.get()の値でフィルタリングを付ける
+        SELECT_TITLE = parent.APPLYNAMEAREA.get()
+        links_list = None
+        if SELECT_TITLE == "選択無し":
+            links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
+        elif SELECT_TITLE == "休暇申請":
+            links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="休暇申請"]
+        elif SELECT_TITLE == "シフト勤務申請":
+            links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
         #ここで辞書を作成する
         Detail_dictList = []
-        #for iterate in range(0,len(links_list)):
-        #とりあえず先頭3件のデータのリンクをクリックして情報を取得する
-        for iterate in range(0,3):
-            '''申請一覧ページであるかを待つ必要がある'''
+        for iterate in range(0,len(links_list)):
+            #とりあえず要素を3つ取り出すこととする
+            if iterate ==3:
+                break
             Detail_dictList.append(getDetailData(driver,wait,links_list[iterate]))
         print(Detail_dictList)
     else:

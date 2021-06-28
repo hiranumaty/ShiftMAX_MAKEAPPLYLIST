@@ -14,6 +14,7 @@ class MakeApplyList(tk.Frame):
         self.St_PASS = tk.StringVar()
         self.St_BEGINING = tk.StringVar()
         self.St_FINAL = tk.StringVar()
+        self.APPLYNAMEAREA = tk.StringVar()
         self.sub_win = None
         super().__init__(master)
         self.create_widgets(master)
@@ -35,8 +36,8 @@ class MakeApplyList(tk.Frame):
         PASSAREA = tk.Entry(master,width=20,textvariable=self.St_PASS)
         PASSAREA.place(x=250,y=20)
         #申請名コンボボックス
-        APPLYNAMEAREA = ttk.Combobox(master,state='readonly')
-        APPLYNAMEAREA["values"] = ("選択無し","時間外申請","休暇申請","休日出勤申請","打刻修整申請","シフト勤務申請")
+        APPLYNAMEAREA = ttk.Combobox(master,state='readonly',textvariable=self.APPLYNAMEAREA)
+        APPLYNAMEAREA["values"] = ("選択無し","休暇申請","シフト勤務申請")
         APPLYNAMEAREA.current(0)
         APPLYNAMEAREA.place(x=100,y=80)
         #日付部(クリックイベントでモーダルを適用すること)
