@@ -59,27 +59,34 @@ def ConnectDriver(parent):
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList_ctl00_linkShinsei")))
         BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
         BTN_ITIRAN.click()
-
-        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-        table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
-        #現在一覧の1ページ目しか見れていない
-        #ここで、parent.APPLYNAMEAREA.get()の値でフィルタリングを付ける
         SELECT_TITLE = parent.APPLYNAMEAREA.get()
-        links_list = None
-        if SELECT_TITLE == "選択無し":
-            links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
-        elif SELECT_TITLE == "休暇申請":
-            links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="休暇申請"]
-        elif SELECT_TITLE == "シフト勤務申請":
-            links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
-        #ここで辞書を作成する
+        pagecounter =0
+        #一覧から詳細情報の配列を作成する(リストが複数ページ存在する場合はそれぞれ取得する)
         Detail_dictList = []
-        for iterate in range(0,len(links_list)):
-            #とりあえず要素を3つ取り出すこととする
-            if iterate ==3:
+        while True:
+            if pagecounter !=0:
+                driver.find_element_by_id('btnPageNext').click()
+            wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
+            table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
+            links_list = None
+            #そのページの一覧に含まれる取得したい情報のページのリンクを取得する
+            if SELECT_TITLE == "選択無し":
+                links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
+            elif SELECT_TITLE == "休暇申請":
+                links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="休暇申請"]
+            elif SELECT_TITLE == "シフト勤務申請":
+                links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
+            
+            for iterate in range(0,len(links_list)):
+                #現在は1ページごとに3件取得する
+                if iterate ==3:
+                    break
+                Detail_dictList.append(getDetailData(driver,wait,links_list[iterate]))
+            pagecounter +=1
+            if len(driver.find_elements_by_id('btnPageNext'))==0:
                 break
-            Detail_dictList.append(getDetailData(driver,wait,links_list[iterate]))
         print(Detail_dictList)
+        driver.quit()
     else:
         messagebox.showwarning("警告","IDとパスワードを入力してください")
     return "break"
