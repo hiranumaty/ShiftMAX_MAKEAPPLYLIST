@@ -1,9 +1,8 @@
 import datetime
-
+"""これは期日の比較のためのパッケージ"""
 def DateCompare1(parent,Data_bigin):
     """
-    引数は 対象の開始日
-    データの開始日とデータの終了日
+    シフト勤務申請の期日フィルターのための関数
     """
     appendflg = True
     if parent.St_BEGINING.get() == '' and parent.St_FINAL.get()== '':
@@ -23,3 +22,13 @@ def DateCompare1(parent,Data_bigin):
     return  appendflg
 def DateCompare2(parent,Data_bigin,Data_final):
     pass
+def EntryCompare(begin,final):
+    """これはtkinterの入力が正しいかどうかを判定するためのもの"""
+    flg = True
+    if begin.get() != '' and final.get() != '':
+        ComPare_BEGIN = datetime.datetime.strptime(begin.get(),"%Y/%m/%d")
+        ComPare_FINAL = datetime.datetime.strptime(final.get(),"%Y/%m/%d")
+        if ComPare_BEGIN>ComPare_FINAL:
+            flg = False
+    return flg
+    

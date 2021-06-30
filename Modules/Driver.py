@@ -3,6 +3,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from tkinter import messagebox
 from Modules import DateComparison
 def ConnectDriver(parent):
@@ -44,10 +45,8 @@ def ConnectDriver(parent):
             return None
 
     '''以下がドライバーの基本操作'''
-    if parent.St_ID.get()!='' and parent.St_PASS.get() != '':
+    if parent.St_ID.get()!='' and parent.St_PASS.get() != '' and DateComparison.EntryCompare(parent.St_BEGINING,parent.St_FINAL):
         #seleniumの設定
-        print(parent.St_BEGINING.get())
-        print(parent.St_FINAL.get())
         option = Options()
         option.add_experimental_option('excludeSwitches', ['enable-logging'])
         #Chromeドライバーの保存先を設定ファイルからの読み込みにした方がいいのでは?
@@ -61,47 +60,50 @@ def ConnectDriver(parent):
         PASS.send_keys(parent.St_PASS.get())
         BTN_LOGIN = driver.find_element_by_id('btnLogin')
         BTN_LOGIN.click()
-        
-        #メイン画面から申請一覧へ移行する
-        wait.until(expected_conditions.element_to_be_clickable((By.ID, "btnShinsei")))
-        BTN_Shinsei = driver.find_element_by_id('btnShinsei')
-        BTN_Shinsei.click()
-        wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList_ctl00_linkShinsei")))
-        BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
-        BTN_ITIRAN.click()
-        SELECT_TITLE = parent.APPLYNAMEAREA.get()
-        #一覧から詳細情報の配列を作成する(リストが複数ページ存在する場合はそれぞれ取得する)
-        Detail_dictList = []
-        firstloop =True
-        while True:
-            if firstloop ==False:
-                driver.find_element_by_id('btnPageNext').click()
-            else:
-                firstloop =False
-            wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-            table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
-            links_list = None
-            #そのページの一覧に含まれる取得したい情報のページのリンクを取得する
-            if SELECT_TITLE == "選択無し":
-                links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
-            elif SELECT_TITLE == "休暇申請":
-                links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="休暇申請"]
-            elif SELECT_TITLE == "シフト勤務申請":
-                links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
-            
-            for iterate in range(0,len(links_list)):
-                #現在は1ページごとに3件取得する
-                if iterate ==3:
+        try:
+            wait.until(expected_conditions.element_to_be_clickable((By.ID, "btnShinsei")))
+            BTN_Shinsei = driver.find_element_by_id('btnShinsei')
+            BTN_Shinsei.click()
+            wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList_ctl00_linkShinsei")))
+            BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
+            BTN_ITIRAN.click()
+            SELECT_TITLE = parent.APPLYNAMEAREA.get()
+            #一覧から詳細情報の配列を作成する(リストが複数ページ存在する場合はそれぞれ取得する)
+            Detail_dictList = []
+            firstloop =True
+            while True:
+                if firstloop ==False:
+                    driver.find_element_by_id('btnPageNext').click()
+                else:
+                    firstloop =False
+                wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
+                table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
+                links_list = None
+                #そのページの一覧に含まれる取得したい情報のページのリンクを取得する
+                if SELECT_TITLE == "選択無し":
+                    links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
+                elif SELECT_TITLE == "休暇申請":
+                    links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="休暇申請"]
+                elif SELECT_TITLE == "シフト勤務申請":
+                    links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
+                
+                for iterate in range(0,len(links_list)):
+                    #現在は1ページごとに3件取得する
+                    if iterate ==3:
+                        break
+                    appendData = getDetailData(parent,driver,wait,links_list[iterate])
+                    if appendData is not None:
+                        Detail_dictList.append(appendData)
+                #次へのボタンがある限り続ける
+                if len(driver.find_elements_by_id('btnPageNext'))==0:
                     break
-                appendData = getDetailData(parent,driver,wait,links_list[iterate])
-                if appendData is not None:
-                    Detail_dictList.append(appendData)
-            #次へのボタンがある限り続ける
-            if len(driver.find_elements_by_id('btnPageNext'))==0:
-                break
-        print(Detail_dictList)
-        driver.quit()
+            driver.quit()
+            print(Detail_dictList)
+        except TimeoutException as e:
+            driver.quit()
+            messagebox.showwarning("警告","IDとパスワードの入力ミスが考えられます")
+            
     else:
-        messagebox.showwarning("警告","IDとパスワードを入力してください")
+        messagebox.showwarning("警告","IDとパスワードの未入力または日付の入力ミスがあります")
     return "break"
         #ここで要素を取得する
