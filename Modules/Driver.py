@@ -28,7 +28,7 @@ def ConnectDriver(parent):
             ENDDate_list = [driver.find_element_by_id('listShinseiView_itm9').text,driver.find_element_by_id('listShinseiView_itm10').text,driver.find_element_by_id('listShinseiView_itm11').text,driver.find_element_by_id('listShinseiView_itm12').text,driver.find_element_by_id('listShinseiView_itm13').text]
             D_ENDDate = D_ENDDate.join(ENDDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm17').text
-            appendflg = True
+            appendflg = DateComparison.DateCompare2(parent,D_StartDate,D_ENDDate)
         elif D_title == "シフト勤務申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
@@ -106,4 +106,3 @@ def ConnectDriver(parent):
     else:
         messagebox.showwarning("警告","IDとパスワードの未入力または日付の入力ミスがあります")
     return "break"
-        #ここで要素を取得する

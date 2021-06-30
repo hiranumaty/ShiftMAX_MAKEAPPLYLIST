@@ -1,4 +1,5 @@
 import datetime
+from datetime import timedelta
 """これは期日の比較のためのパッケージ"""
 def DateCompare1(parent,Data_bigin):
     """
@@ -6,7 +7,7 @@ def DateCompare1(parent,Data_bigin):
     """
     appendflg = True
     if parent.St_BEGINING.get() == '' and parent.St_FINAL.get()== '':
-        pass
+        appendflg = True
     else:
         DATE = datetime.datetime.strptime(Data_bigin,"%Y年%m月%d")
         if parent.St_BEGINING.get() != "":
@@ -18,12 +19,39 @@ def DateCompare1(parent,Data_bigin):
             ComPare_FINAL = datetime.datetime.strptime(parent.St_FINAL.get(),"%Y/%m/%d")
             if DATE > ComPare_FINAL:
                 appendflg = False
-                pass
     return  appendflg
 def DateCompare2(parent,Data_bigin,Data_final):
-    pass
+    """休暇申請の期日フィルターのための関数"""
+    """まず詳細データの一覧から日付のリストを作り出しそれがフィルターの開始と終了にかすっていればTrue"""
+    appendflg = False
+    StartDate = datetime.datetime.strptime(Data_bigin,"%Y年%m月%d")
+    ENDDate = datetime.datetime.strptime(Data_final,"%Y年%m月%d")
+    #入力がない場合は
+    if parent.St_BEGINING.get() != '':
+        ComPare_BEGIN = datetime.datetime.strptime(parent.St_BEGINING.get(),"%Y/%m/%d")
+    else:
+        ComPare_BEGIN = datetime.datetime.min
+    if parent.St_FINAL.get() != '':
+        ComPare_FINAL = datetime.datetime.strptime(parent.St_FINAL.get(),"%Y/%m/%d")
+    else:
+        ComPare_FINAL = datetime.datetime.max
+    days_num = (ENDDate -StartDate).days +1
+    Date_LIST = []
+    for i in range(days_num):
+        Date_LIST.append(StartDate + timedelta(days=i))
+    
+    for iterator in Date_LIST:
+        if ComPare_BEGIN<=iterator<=ComPare_FINAL:
+            appendflg = True
+            break
+    return appendflg
+    
+
+    
+
+    
 def EntryCompare(begin,final):
-    """これはtkinterの入力が正しいかどうかを判定するためのもの"""
+    """これは日付フィルターの入力が正しいかどうかを判定するためのもの"""
     flg = True
     if begin.get() != '' and final.get() != '':
         ComPare_BEGIN = datetime.datetime.strptime(begin.get(),"%Y/%m/%d")
