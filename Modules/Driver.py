@@ -4,10 +4,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 from tkinter import messagebox
-
+from Modules import DateComparison
 def ConnectDriver(parent):
     '''これはChromeDriverを用いた動作を行う'''
-    def getDetailData(driver,wait,link):
+    def getDetailData(parent,driver,wait,link):
         '''詳細情報を辞書の形で取得しreturn'''
         #要素を取得して、辞書にして返す
         driver.find_element_by_id(link).click()
@@ -20,27 +20,37 @@ def ConnectDriver(parent):
         D_StartDate = ''
         D_ENDDate = ''
         D_Reason = ''
+        appendflg =None 
         if D_title == "休暇申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
             ENDDate_list = [driver.find_element_by_id('listShinseiView_itm9').text,driver.find_element_by_id('listShinseiView_itm10').text,driver.find_element_by_id('listShinseiView_itm11').text,driver.find_element_by_id('listShinseiView_itm12').text,driver.find_element_by_id('listShinseiView_itm13').text]
             D_ENDDate = D_ENDDate.join(ENDDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm17').text
+            appendflg = True
         elif D_title == "シフト勤務申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm10').text
+            appendflg = DateComparison.DateCompare1(parent,D_StartDate)
         Detail_Dict ={'ID':U_ID,'NAME':U_NAME,'StartDate':D_StartDate,'EndDate':D_ENDDate,'Title':D_title,'Reason':D_Reason}
         '''申請一覧のページに戻る'''
         driver.find_element_by_id('btnBack').click()
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-        return Detail_Dict
+        #ここで対象の日付の取得を行いデータを格納するかを選択する appendflg = falseとし条件を満たしているデータがあるかどうかを判定する
+        if appendflg:
+            return Detail_Dict
+        else:
+            return None
+
     '''以下がドライバーの基本操作'''
     if parent.St_ID.get()!='' and parent.St_PASS.get() != '':
         #seleniumの設定
-        #parent.APPLYNAMEAREA.get()
+        print(parent.St_BEGINING.get())
+        print(parent.St_FINAL.get())
         option = Options()
         option.add_experimental_option('excludeSwitches', ['enable-logging'])
+        #Chromeドライバーの保存先を設定ファイルからの読み込みにした方がいいのでは?
         driver = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe",options=option)
         driver.get(parent.St_URL)
         wait = WebDriverWait(driver,10)
@@ -60,12 +70,14 @@ def ConnectDriver(parent):
         BTN_ITIRAN = driver.find_element_by_id('listShinseiList_ctl00_linkShinsei')
         BTN_ITIRAN.click()
         SELECT_TITLE = parent.APPLYNAMEAREA.get()
-        pagecounter =0
         #一覧から詳細情報の配列を作成する(リストが複数ページ存在する場合はそれぞれ取得する)
         Detail_dictList = []
+        firstloop =True
         while True:
-            if pagecounter !=0:
+            if firstloop ==False:
                 driver.find_element_by_id('btnPageNext').click()
+            else:
+                firstloop =False
             wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
             table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
             links_list = None
@@ -81,8 +93,10 @@ def ConnectDriver(parent):
                 #現在は1ページごとに3件取得する
                 if iterate ==3:
                     break
-                Detail_dictList.append(getDetailData(driver,wait,links_list[iterate]))
-            pagecounter +=1
+                appendData = getDetailData(parent,driver,wait,links_list[iterate])
+                if appendData is not None:
+                    Detail_dictList.append(appendData)
+            #次へのボタンがある限り続ける
             if len(driver.find_elements_by_id('btnPageNext'))==0:
                 break
         print(Detail_dictList)
