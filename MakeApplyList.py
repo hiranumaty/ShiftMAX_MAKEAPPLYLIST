@@ -16,8 +16,8 @@ class MakeApplyList(tk.Frame):
         load_dotenv(verbose=True)
         dotenv_path = join(os.getcwd(),'setting.env')
         load_dotenv(dotenv_path)
-        DRIVER = os.environ.get('DRIVERURL')
-        self.St_URL = DRIVER
+        self.DRIVERURL = os.environ.get('DRIVERURL')
+        self.St_URL = os.environ.get('URL')
         self.St_ID = tk.StringVar()
         self.St_PASS = tk.StringVar()
         self.St_BEGINING = tk.StringVar()

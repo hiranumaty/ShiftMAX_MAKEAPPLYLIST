@@ -50,7 +50,7 @@ def ConnectDriver(parent):
         option = Options()
         option.add_experimental_option('excludeSwitches', ['enable-logging'])
         #Chromeドライバーの保存先を設定ファイルからの読み込みにした方がいいのでは?
-        driver = webdriver.Chrome("C:\chromedriver_win32\chromedriver.exe",options=option)
+        driver = webdriver.Chrome(parent.DRIVERURL,options=option)
         driver.get(parent.St_URL)
         wait = WebDriverWait(driver,10)
         #ログイン処理
