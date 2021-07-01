@@ -48,8 +48,18 @@ class MakeApplyList(tk.Frame):
         FINALDATE.bind('<Button-1>',self.__MORDALFINALDATE)
         FINALDATE.place(x=230,y=150)
         #ボタン
-        BTN_MakeApplyList = tk.Button(master,text="申請一覧抽出",width=40,relief="raised",command= lambda:Driver.ConnectDriver(self))
+        BTN_MakeApplyList = tk.Button(master,text="申請一覧抽出",width=40,relief="raised")
+        BTN_MakeApplyList.bind('<Button-1>',self.__StartModules)
         BTN_MakeApplyList.place(x=50,y=220)
+    def __StartModules(self,event):
+        """DriverとExcelPrintを起動する"""
+        Detail_dictList =  Driver.ConnectDriver(self)
+        if Detail_dictList != "":
+            print(Detail_dictList)
+        else:
+            print("データがありません")
+        return "break"
+
     #モーダルの作成
     def __MORDALBEGINDATE(self,event):
         if self.sub_win == None or not self.sub_win.winfo_exists():

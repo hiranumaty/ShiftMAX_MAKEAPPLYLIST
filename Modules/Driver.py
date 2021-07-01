@@ -98,11 +98,13 @@ def ConnectDriver(parent):
                 if len(driver.find_elements_by_id('btnPageNext'))==0:
                     break
             driver.quit()
-            print(Detail_dictList)
+            return Detail_dictList
         except TimeoutException as e:
             driver.quit()
             messagebox.showwarning("警告","IDとパスワードの入力ミスが考えられます")
+            return ""
             
     else:
         messagebox.showwarning("警告","IDとパスワードの未入力または日付の入力ミスがあります")
-    return "break"
+        return ""
+    return ""
