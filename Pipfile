@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 tkcalendar = "*"
 selenium = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

@@ -3,13 +3,21 @@ import tkinter.ttk as ttk
 import time
 from tkcalendar import Calendar, DateEntry
 from Modules import Driver
+from os.path import join,dirname
+from dotenv import load_dotenv
+import os 
 class MakeApplyList(tk.Frame):
     '''
     このwindowを用いて作成する
+    起動と同時に設定ファイルからwebドライバーの位置を取得する
     '''
     
     def __init__(self,master=None):
-        self.St_URL = "https://trs-shiftmax.jp/trTk1559"
+        load_dotenv(verbose=True)
+        dotenv_path = join(os.getcwd(),'setting.env')
+        load_dotenv(dotenv_path)
+        DRIVER = os.environ.get('DRIVERURL')
+        self.St_URL = DRIVER
         self.St_ID = tk.StringVar()
         self.St_PASS = tk.StringVar()
         self.St_BEGINING = tk.StringVar()
