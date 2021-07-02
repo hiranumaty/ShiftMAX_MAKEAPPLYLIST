@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import time
 from tkcalendar import Calendar, DateEntry
-from Modules import Driver
+from Modules import Driver,PrintExcel
 from os.path import join,dirname
 from dotenv import load_dotenv
 import os 
@@ -63,7 +63,8 @@ class MakeApplyList(tk.Frame):
         """DriverとExcelPrintを起動する"""
         Detail_dictList =  Driver.ConnectDriver(self)
         if Detail_dictList != "":
-            print(Detail_dictList)
+            #PrintExcel.CSVWriter(self,Detail_dictList)
+            PrintExcel.ExcelWriter(self,Detail_dictList)
         else:
             print("データがありません")
         return "break"
