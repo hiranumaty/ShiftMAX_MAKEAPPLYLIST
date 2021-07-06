@@ -2,9 +2,10 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import time
 from tkcalendar import Calendar, DateEntry
-from Modules import Driver,PrintExcel
+from Modules import Driver,PrintExcel,DateComparison
 from os.path import join,dirname
 from dotenv import load_dotenv
+from tkinter import messagebox
 import os 
 class MakeApplyList(tk.Frame):
     '''
@@ -69,13 +70,17 @@ class MakeApplyList(tk.Frame):
         BTN_MakeApplyList.place(x=50,y=220)
     def __StartModules(self,event):
         """DriverとExcelPrintを起動する"""
-        Detail_dictList =  Driver.ConnectDriver(self)
-        if Detail_dictList != "":
-            #PrintExcel.CSVWriter(self,Detail_dictList)
-            PrintExcel.ExcelWriter(self,Detail_dictList)
+        if self.St_ID.get()!='' and self.St_PASS.get() != '' and DateComparison.EntryCompare(self.St_BEGINING,self.St_FINAL):
+            Detail_dictList =  Driver.ConnectDriver(self)
+            if Detail_dictList != "":
+                #PrintExcel.CSVWriter(self,Detail_dictList)
+                PrintExcel.ExcelWriter(self,Detail_dictList)
+            else:
+                messagebox.showwarning("警告","IDとパスワードの入力ミスが考えられます")
+            return "break"
         else:
-            print("データがありません")
-        return "break"
+            messagebox.showwarning("警告","IDとパスワードの未入力または日付の入力ミス　またはログイン中のエラーが発生しました。")
+            return "break"
 
     #モーダルの作成
     def __MORDALBEGINDATE(self,event):
