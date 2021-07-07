@@ -2,10 +2,10 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import time
 from tkcalendar import Calendar, DateEntry
-from Modules import Driver,PrintExcel,DateComparison
+from Modules import Driver,PrintExcel,DateComparison,ReadExcel
 from os.path import join,dirname
 from dotenv import load_dotenv
-from tkinter import messagebox
+from tkinter import messagebox,filedialog
 import os 
 class MakeApplyList(tk.Frame):
     '''
@@ -22,7 +22,7 @@ class MakeApplyList(tk.Frame):
         #St_IDとSt_PASSをset()で変更すればDriverで使いまわせるのでは
         self.St_ID = tk.StringVar()
         self.St_PASS = tk.StringVar()
-        
+        self.St_EMployeeListPath = tk.StringVar()      
         self.St_BEGINING = tk.StringVar()
         self.St_FINAL = tk.StringVar()
         self.APPLYNAMEAREA = tk.StringVar()
@@ -31,11 +31,8 @@ class MakeApplyList(tk.Frame):
         self.create_widgets(master)
     def create_widgets(self,master):
         #ラベル
-        LBL1 = tk.Label(master,text="ID:",width=2)
-        LBL2 = tk.Label(master,text="PASS:",width=6)
-        LBL1.place(x=30,y=20)
-        LBL2.place(x=200,y=20)
-        
+        LBL1 = tk.Label(master,text="取得対象の社員一覧(.xlsx)",width=20)
+        LBL1.place(x=10,y=10)
         LBL3 = tk.Label(master,text="申請名:",width=5)
         LBL3.place(x=30,y=100)
         LBL4 = tk.Label(master,text="日付:",width=5)
@@ -49,11 +46,10 @@ class MakeApplyList(tk.Frame):
         separator1.place(x=0,y=50,width=400)
         separator2 = ttk.Separator(master, orient='horizontal')
         separator2.place(x=0,y=200,width=400)
-        #UserInfo
-        IDAREA = tk.Entry(master,width=20,textvariable=self.St_ID)
-        IDAREA.place(x=60,y=20)
-        PASSAREA = tk.Entry(master,width=20,textvariable=self.St_PASS)
-        PASSAREA.place(x=250,y=20)
+        #ファイルダイアログをここに設置する
+        FILEDIALOG = ttk.Entry(master,textvariable=self.St_EMployeeListPath,width=30)
+        FILEDIALOG.bind('<Button-1>',self.file_open)
+        FILEDIALOG.place(x=180,y=10)
         #申請名コンボボックス
         APPLYNAMEAREA = ttk.Combobox(master,state='readonly',textvariable=self.APPLYNAMEAREA)
         APPLYNAMEAREA["values"] = ("選択無し","休暇申請","シフト勤務申請")
@@ -72,16 +68,31 @@ class MakeApplyList(tk.Frame):
         BTN_MakeApplyList.place(x=50,y=220)
     def __StartModules(self,event):
         """DriverとExcelPrintを起動する"""
-        if self.St_ID.get()!='' and self.St_PASS.get() != '' and DateComparison.EntryCompare(self.St_BEGINING,self.St_FINAL):
-            Detail_dictList =  Driver.ConnectDriver(self)
-            if Detail_dictList != "":
-                PrintExcel.ExcelWriter(self,Detail_dictList)
-            else:
-                messagebox.showwarning("警告","IDとパスワードの入力ミスが考えられます")
+        if self.St_EMployeeListPath.get()!='' and DateComparison.EntryCompare(self.St_BEGINING,self.St_FINAL):
+            #ログイン用のリストを作成する
+            USERSINFO_LIST = ReadExcel.ReadEmployeeList(self)
+            Detail_Datas = {}
+            for USERINFO in USERSINFO_LIST:
+                self.St_ID.set(USERINFO["ID"])
+                self.St_PASS.set(USERINFO["PASSWORD"])
+                Detail_dictList =  Driver.ConnectDriver(self)
+                if Detail_dictList != "":
+                    Detail_Datas[USERINFO["ID"]] = Detail_dictList
+            PrintExcel.MultiExcelWriter(Detail_Datas)
             return "break"
         else:
-            messagebox.showwarning("警告","IDとパスワードの未入力または日付の入力ミス　またはログイン中のエラーが発生しました。")
+            messagebox.showwarning("警告","ファイルの選択ミスまたは日付の入力ミスがあります")
             return "break"
+    def file_open(self,event):
+        inidir = os.getcwd()
+        fTyp = [("", "*.xlsx")]
+        filename = filedialog.askopenfilename(filetypes=fTyp,initialdir=inidir)
+        if filename:
+            self.St_EMployeeListPath.set(filename)
+        else:
+            messagebox.showwarning("警告","ファイルを選択してください")
+
+
 
     #モーダルの作成
     def __MORDALBEGINDATE(self,event):

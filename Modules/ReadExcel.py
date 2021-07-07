@@ -1,9 +1,10 @@
 import openpyxl
 
 def ReadEmployeeList(parent):
-    """parent.St_EMployeeListからファイル名を取得するようにすること"""
+    """parent.St_EMployeeListPathからファイル名を取得するようにすること"""
 
-    wb = openpyxl.load_workbook(R"C:\Users\拓也\Desktop\testRead.xlsx")
+    wb = openpyxl.load_workbook(parent.St_EMployeeListPath.get())
+    ws = wb.worksheets[0]
     headers = None
     dic_list=[]
 
