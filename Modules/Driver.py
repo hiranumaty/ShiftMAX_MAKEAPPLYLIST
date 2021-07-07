@@ -6,7 +6,9 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from Modules import DateComparison
 def ConnectDriver(parent):
-    '''これはChromeDriverを用いた動作を行う'''
+    '''これはChromeDriverを用いた動作を行う
+    1アカウントの申請情報(休暇申請orシフト勤務申請データの一覧を取得する)
+    '''
     def getDetailData(parent,driver,wait,link):
         '''詳細情報を辞書の形で取得しreturn'''
         #要素を取得して、辞書にして返す
@@ -16,28 +18,29 @@ def ConnectDriver(parent):
         U_NAME = driver.find_element_by_id('lblName').text
         U_NAME = ''.join(U_NAME.split())[:-1]
         D_title = driver.find_element_by_id('lblTitle').text
-        #titleを元に取得個所を変更する
         D_StartDate = ''
         D_ENDDate = ''
         D_Reason = ''
-        appendflg =None 
+        appendflg =None
+        #申請種別ごとに取得するフィールドが異なる
         if D_title == "休暇申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
             ENDDate_list = [driver.find_element_by_id('listShinseiView_itm9').text,driver.find_element_by_id('listShinseiView_itm10').text,driver.find_element_by_id('listShinseiView_itm11').text,driver.find_element_by_id('listShinseiView_itm12').text,driver.find_element_by_id('listShinseiView_itm13').text]
             D_ENDDate = D_ENDDate.join(ENDDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm17').text
+            #フィルターの日付に合致するデータかどうかを判断する
             appendflg = DateComparison.DateCompare2(parent,D_StartDate,D_ENDDate)
         elif D_title == "シフト勤務申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm10').text
+            #フィルターの日付に合致するデータかどうかを判断する
             appendflg = DateComparison.DateCompare1(parent,D_StartDate)
         Detail_Dict ={'ID':U_ID,'NAME':U_NAME,'StartDate':D_StartDate,'EndDate':D_ENDDate,'Title':D_title,'Reason':D_Reason}
         '''申請一覧のページに戻る'''
         driver.find_element_by_id('btnBack').click()
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-        #ここで対象の日付の取得を行いデータを格納するかを選択する appendflg = falseとし条件を満たしているデータがあるかどうかを判定する
         if appendflg:
             return Detail_Dict
         else:
@@ -47,7 +50,6 @@ def ConnectDriver(parent):
     #seleniumの設定
     option = Options()
     option.add_experimental_option('excludeSwitches', ['enable-logging'])
-    #Chromeドライバーの保存先を設定ファイルからの読み込みにした方がいいのでは?
     driver = webdriver.Chrome(parent.DRIVERURL,options=option)
     driver.get(parent.St_URL)
     wait = WebDriverWait(driver,10)

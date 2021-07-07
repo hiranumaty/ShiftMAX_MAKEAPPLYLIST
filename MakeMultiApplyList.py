@@ -19,8 +19,10 @@ class MakeApplyList(tk.Frame):
         load_dotenv(dotenv_path)
         self.DRIVERURL = os.environ.get('DRIVERURL')
         self.St_URL = os.environ.get('URL')
+        #St_IDとSt_PASSをset()で変更すればDriverで使いまわせるのでは
         self.St_ID = tk.StringVar()
         self.St_PASS = tk.StringVar()
+        
         self.St_BEGINING = tk.StringVar()
         self.St_FINAL = tk.StringVar()
         self.APPLYNAMEAREA = tk.StringVar()
