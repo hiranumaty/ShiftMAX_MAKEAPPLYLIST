@@ -88,9 +88,6 @@ def ConnectDriver(parent):
                 links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
             
             for iterate in range(0,len(links_list)):
-                #現在は1ページごとに3件取得する
-                if iterate ==3:
-                    break
                 appendData = getDetailData(parent,driver,wait,links_list[iterate])
                 if appendData is not None:
                     Detail_dictList.append(appendData)
