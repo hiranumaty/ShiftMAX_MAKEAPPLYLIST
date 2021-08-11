@@ -78,15 +78,40 @@ def ConnectDriver(parent):
                 firstloop =False
             wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
             table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
-            links_list = None
+            links_list = []
+            Date_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[4]/span")
+            
+            #DateComparison.DateCompare2　休暇勤務の日付指定
+            #DateComparison.DateCompare1 シフト勤務の日付指定
+
             #そのページの一覧に含まれる取得したい情報のページのリンクを取得する
             if SELECT_TITLE == "選択無し":
-                links_list = [iterater.get_attribute('id') for iterater in table_list if (iterater.text=="休暇申請" or iterater.text=="シフト勤務申請")]
+                for iterater in range(0,len(table_list)):
+                    if table_list[iterater].text=="休暇申請":
+                        DATES =(Date_list[iterater].text.replace(' ','')).split('～')
+                        D_StartDate = DateComparison.ChangeDateFormat(DATES[0],'Start')
+                        D_ENDDate = DateComparison.ChangeDateFormat(DATES[1],'END')
+                        if DateComparison.DateCompare2(parent,D_StartDate,D_ENDDate):
+                            links_list.append(table_list[iterater].get_attribute('id'))
+                    elif table_list[iterater].text=="シフト勤務申請":
+                        D_StartDate = DateComparison.ChangeDateFormat(Date_list[iterater].text.replace(' ',''),'Start')
+                        if DateComparison.DateCompare1(parent,D_StartDate):
+                            links_list.append(table_list[iterater].get_attribute('id'))
             elif SELECT_TITLE == "休暇申請":
-                links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="休暇申請"]
+                for iterater in range(0,len(table_list)):
+                    if table_list[iterater].text=="休暇申請":
+                        DATES =(Date_list[iterater].text.replace(' ','')).split('～')
+                        D_StartDate = DateComparison.ChangeDateFormat(DATES[0],'Start')
+                        D_ENDDate = DateComparison.ChangeDateFormat(DATES[1],'END')
+                        if DateComparison.DateCompare2(parent,D_StartDate,D_ENDDate):
+                            links_list.append(table_list[iterater].get_attribute('id'))
             elif SELECT_TITLE == "シフト勤務申請":
-                links_list = [iterater.get_attribute('id') for iterater in table_list if iterater.text=="シフト勤務申請"]
-            
+                for iterater in range(0,len(table_list)):
+                    if table_list[iterater].text=="シフト勤務申請":
+                        D_StartDate = DateComparison.ChangeDateFormat(Date_list[iterater].text.replace(' ',''),'Start')
+                        if DateComparison.DateCompare1(parent,D_StartDate):
+                            links_list.append(table_list[iterater].get_attribute('id'))
+
             for iterate in range(0,len(links_list)):
                 appendData = getDetailData(parent,driver,wait,links_list[iterate])
                 if appendData is not None:

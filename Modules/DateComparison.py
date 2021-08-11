@@ -65,4 +65,17 @@ def EntryCompare(begin,final):
         if ComPare_BEGIN>ComPare_FINAL:
             flg = False
     return flg
-    
+
+def ChangeDateFormat(DateString,mode):
+    """YYYY/MM/DDを"%Y年%m月%d"に変化させる"""
+    import locale
+    locale.setlocale(locale.LC_CTYPE, "English_United States.932")
+    if DateString != '':
+        DATE = datetime.datetime.strptime(DateString[:10],"%Y/%m/%d")
+    else:
+        if mode =='Start':
+            DATE = datetime.datetime.min
+        else:
+            DATE = datetime.datetime.max
+    DATE_STRING =DATE.strftime("%Y年%m月%d")
+    return DATE_STRING    
