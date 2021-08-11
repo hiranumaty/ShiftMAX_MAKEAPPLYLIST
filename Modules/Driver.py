@@ -21,7 +21,6 @@ def ConnectDriver(parent):
         D_StartDate = ''
         D_ENDDate = ''
         D_Reason = ''
-        appendflg =None
         #申請種別ごとに取得するフィールドが異なる
         if D_title == "休暇申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
@@ -29,22 +28,15 @@ def ConnectDriver(parent):
             ENDDate_list = [driver.find_element_by_id('listShinseiView_itm9').text,driver.find_element_by_id('listShinseiView_itm10').text,driver.find_element_by_id('listShinseiView_itm11').text,driver.find_element_by_id('listShinseiView_itm12').text,driver.find_element_by_id('listShinseiView_itm13').text]
             D_ENDDate = D_ENDDate.join(ENDDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm17').text
-            #フィルターの日付に合致するデータかどうかを判断する
-            appendflg = DateComparison.DateCompare2(parent,D_StartDate,D_ENDDate)
         elif D_title == "シフト勤務申請":
             StartDate_list = [driver.find_element_by_id('listShinseiView_itm2').text,driver.find_element_by_id('listShinseiView_itm3').text,driver.find_element_by_id('listShinseiView_itm4').text,driver.find_element_by_id('listShinseiView_itm5').text,driver.find_element_by_id('listShinseiView_itm6').text]
             D_StartDate = D_StartDate.join(StartDate_list)
             D_Reason = driver.find_element_by_id('listShinseiView_itm10').text
-            #フィルターの日付に合致するデータかどうかを判断する
-            appendflg = DateComparison.DateCompare1(parent,D_StartDate)
         Detail_Dict ={'ID':U_ID,'NAME':U_NAME,'StartDate':D_StartDate,'EndDate':D_ENDDate,'Title':D_title,'Reason':D_Reason}
         '''申請一覧のページに戻る'''
         driver.find_element_by_id('btnBack').click()
         wait.until(expected_conditions.element_to_be_clickable((By.ID, "listShinseiList")))
-        if appendflg:
-            return Detail_Dict
-        else:
-            return None
+        return Detail_Dict
 
     '''以下がドライバーの基本操作'''
     #seleniumの設定
@@ -80,10 +72,6 @@ def ConnectDriver(parent):
             table_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[3]/a")
             links_list = []
             Date_list = driver.find_elements_by_xpath("//table[@id='listShinseiList']/tbody/tr/td[4]/span")
-            
-            #DateComparison.DateCompare2　休暇勤務の日付指定
-            #DateComparison.DateCompare1 シフト勤務の日付指定
-
             #そのページの一覧に含まれる取得したい情報のページのリンクを取得する
             if SELECT_TITLE == "選択無し":
                 for iterater in range(0,len(table_list)):
